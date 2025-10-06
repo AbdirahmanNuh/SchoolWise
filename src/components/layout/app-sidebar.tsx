@@ -20,12 +20,16 @@ import {
   ClipboardCheck,
   FileText,
   Settings,
+  Contact,
+  Book,
 } from "lucide-react";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import Image from "next/image";
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/students", label: "Students", icon: Contact },
+  { href: "/classes", label: "Classes", icon: Book },
   { href: "/financials", label: "Financials", icon: Banknote },
   { href: "/attendance", label: "Attendance", icon: Users },
   { href: "/exams", label: "Exams", icon: ClipboardCheck },
