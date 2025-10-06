@@ -25,8 +25,6 @@ import {
 } from "lucide-react";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import Image from "next/image";
-import { useTranslations } from "next-intl";
-import LanguageSwitcher from "./language-switcher";
 
 const userAvatar = PlaceHolderImages.find(
   (image) => image.id === "admin-avatar"
@@ -34,17 +32,16 @@ const userAvatar = PlaceHolderImages.find(
 
 export default function AppSidebar() {
   const pathname = usePathname();
-  const t = useTranslations("Sidebar");
 
   const navItems = [
-    { href: "/", label: t("dashboard"), icon: LayoutDashboard },
-    { href: "/students", label: t("students"), icon: Contact },
-    { href: "/classes", label: t("classes"), icon: Book },
-    { href: "/financials", label: t("financials"), icon: Banknote },
-    { href: "/attendance", label: t("attendance"), icon: Users },
-    { href: "/exams", label: t("exams"), icon: ClipboardCheck },
-    { href: "/reports", label: t("reports"), icon: FileText },
-    { href: "/settings", label: t("settings"), icon: Settings },
+    { href: "/", label: "Dashboard", icon: LayoutDashboard },
+    { href: "/students", label: "Students", icon: Contact },
+    { href: "/classes", label: "Classes", icon: Book },
+    { href: "/financials", label: "Financials", icon: Banknote },
+    { href: "/attendance", label: "Attendance", icon: Users },
+    { href: "/exams", label: "Exams", icon: ClipboardCheck },
+    { href: "/reports", label: "Reports", icon: FileText },
+    { href: "/settings", label: "Settings", icon: Settings },
   ];
   
   return (
@@ -57,7 +54,6 @@ export default function AppSidebar() {
                 SchoolWise
               </h1>
             </div>
-            <LanguageSwitcher />
         </div>
       </SidebarHeader>
       <SidebarContent className="p-4">
@@ -94,7 +90,7 @@ export default function AppSidebar() {
             <AvatarFallback>AU</AvatarFallback>
           </Avatar>
           <div>
-            <p className="text-sm font-semibold text-foreground">{t("adminUser")}</p>
+            <p className="text-sm font-semibold text-foreground">Admin User</p>
             <p className="text-xs text-muted-foreground">admin@school.com</p>
           </div>
         </div>
