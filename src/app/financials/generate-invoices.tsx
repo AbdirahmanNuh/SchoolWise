@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -21,16 +22,24 @@ import {
   Send,
   Trash2,
 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
-const invoiceItems = [
+type InvoiceItem = {
+  id: string;
+  fee: string;
+  quantity: number;
+  amount: number;
+};
+
+const initialInvoiceItems: InvoiceItem[] = [
   {
-    id: "item-1",
+    id: `item-${Date.now()}`,
     fee: "Tuition Fee",
     quantity: 1,
     amount: 5000,
   },
   {
-    id: "item-2",
+    id: `item-${Date.now() + 1}`,
     fee: "Sports Fee",
     quantity: 1,
     amount: 300,
@@ -38,13 +47,45 @@ const invoiceItems = [
 ];
 
 export default function GenerateInvoices() {
+  const [invoiceItems, setInvoiceItems] = useState(initialInvoiceItems);
+  const { toast } = useToast();
+
+  const handleAddItem = () => {
+    setInvoiceItems([
+      ...invoiceItems,
+      { id: `item-${Date.now()}`, fee: "", quantity: 1, amount: 0 },
+    ]);
+  };
+
+  const handleRemoveItem = (id: string) => {
+    setInvoiceItems(invoiceItems.filter((item) => item.id !== id));
+  };
+  
+  const subtotal = invoiceItems.reduce(
+    (sum, item) => sum + item.amount * item.quantity,
+    0
+  );
+  
+  const tax = 0;
+  const total = subtotal + tax;
+
+  const handleAction = (action: string) => {
+    toast({
+      title: "Action Triggered",
+      description: `${action} button was clicked.`,
+    });
+  };
+  
   return (
     <Card>
       <CardHeader>
         <CardTitle className="text-xl">Create Invoice</CardTitle>
       </CardHeader>
       <CardContent>
-        <form>
+        <form onSubmit={(e) => {
+            e.preventDefault();
+            handleAction("Send Invoice")
+        }}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <Label htmlFor="select-recipient">Select Student or Class</Label>
@@ -66,10 +107,7 @@ export default function GenerateInvoices() {
             <div className="grid grid-cols-2 gap-6">
               <div>
                 <Label htmlFor="invoice-number">Invoice #</Label>
-                <Input
-                  id="invoice-number"
-                  defaultValue="INV-2024-001"
-                />
+                <Input id="invoice-number" defaultValue="INV-2024-001" />
               </div>
               <div>
                 <Label htmlFor="due-date">Due Date</Label>
@@ -82,7 +120,10 @@ export default function GenerateInvoices() {
             <h4 className="text-lg font-medium mb-4">Invoice Items</h4>
             <div className="space-y-4">
               {invoiceItems.map((item, index) => (
-                <div key={item.id} className="grid grid-cols-12 gap-4 items-center">
+                <div
+                  key={item.id}
+                  className="grid grid-cols-12 gap-4 items-center"
+                >
                   <div className="col-span-12 sm:col-span-5">
                     <Label htmlFor={`item-${index}`} className="sr-only">
                       Item
@@ -126,7 +167,12 @@ export default function GenerateInvoices() {
                     </div>
                   </div>
                   <div className="col-span-2 sm:col-span-2 text-right">
-                    <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-destructive hover:text-destructive"
+                      onClick={() => handleRemoveItem(item.id)}
+                    >
                       <Trash2 />
                       <span className="sr-only">Delete item</span>
                     </Button>
@@ -135,7 +181,12 @@ export default function GenerateInvoices() {
               ))}
             </div>
             <div className="mt-4">
-              <Button variant="link" className="p-0 h-auto">
+              <Button
+                variant="link"
+                className="p-0 h-auto"
+                type="button"
+                onClick={handleAddItem}
+              >
                 <PlusCircle />
                 <span>Add Item</span>
               </Button>
@@ -156,16 +207,31 @@ export default function GenerateInvoices() {
                 <div className="w-full md:w-80 space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Subtotal</span>
-                    <span className="font-medium">$5,300.00</span>
+                    <span className="font-medium">
+                      {subtotal.toLocaleString("en-US", {
+                        style: "currency",
+                        currency: "USD",
+                      })}
+                    </span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Tax (0%)</span>
-                    <span className="font-medium">$0.00</span>
+                    <span className="font-medium">
+                      {tax.toLocaleString("en-US", {
+                        style: "currency",
+                        currency: "USD",
+                      })}
+                    </span>
                   </div>
                   <Separator className="my-2" />
                   <div className="flex justify-between text-lg font-bold">
                     <span>Total</span>
-                    <span className="text-primary">$5,300.00</span>
+                    <span className="text-primary">
+                      {total.toLocaleString("en-US", {
+                        style: "currency",
+                        currency: "USD",
+                      })}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -173,15 +239,15 @@ export default function GenerateInvoices() {
           </div>
 
           <div className="mt-8 flex flex-col sm:flex-row justify-end gap-3">
-            <Button variant="outline" type="button">
+            <Button variant="outline" type="button" onClick={() => handleAction("Preview")}>
               <Eye />
               <span>Preview</span>
             </Button>
-            <Button variant="outline" type="button">
+            <Button variant="outline" type="button" onClick={() => handleAction("Save as Draft")}>
               <Save />
               <span>Save as Draft</span>
             </Button>
-            <Button variant="outline" type="button">
+            <Button variant="outline" type="button" onClick={() => handleAction("Download PDF")}>
               <FileDown />
               <span>Download PDF</span>
             </Button>

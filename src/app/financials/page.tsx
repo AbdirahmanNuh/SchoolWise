@@ -1,11 +1,23 @@
+"use client";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import FeeStructure from "./fee-structure";
 import GenerateInvoices from "./generate-invoices";
 import ReceivePayments from "./receive-payments";
 import { Button } from "@/components/ui/button";
 import { Receipt, History } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 export default function FinancialsPage() {
+  const { toast } = useToast();
+  
+  const handleAction = (action: string) => {
+    toast({
+      title: "Action Triggered",
+      description: `${action} button was clicked.`,
+    });
+  };
+
   return (
     <main className="p-4 sm:p-8">
       <header className="mb-6 pb-6 border-b flex items-center justify-between">
@@ -18,18 +30,18 @@ export default function FinancialsPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button>
+          <Button onClick={() => handleAction("Generate Receipt")}>
             <Receipt className="mr-2" />
             Generate Receipt
           </Button>
-          <Button variant="outline">
+          <Button variant="outline" onClick={() => handleAction("Payment History")}>
             <History className="mr-2" />
             Payment History
           </Button>
         </div>
       </header>
 
-      <Tabs defaultValue="receive-payments" className="mt-6">
+      <Tabs defaultValue="fee-structure" className="mt-6">
         <TabsList className="grid w-full max-w-md grid-cols-3">
           <TabsTrigger value="fee-structure">Fee Structure</TabsTrigger>
           <TabsTrigger value="generate-invoices">Generate Invoices</TabsTrigger>
