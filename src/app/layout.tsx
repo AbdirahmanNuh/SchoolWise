@@ -3,6 +3,7 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import AppSidebar from "@/components/layout/app-sidebar";
+import { NextIntlClientProvider, useMessages } from "next-intl";
 
 export const metadata: Metadata = {
   title: "SchoolWise",
@@ -11,11 +12,15 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
+  params: { locale },
 }: Readonly<{
   children: React.ReactNode;
+  params: { locale: string };
 }>) {
+  const messages = useMessages();
+
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang={locale} dir={locale === 'ar' ? 'rtl' : 'ltr'}>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
@@ -33,11 +38,13 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased">
-        <SidebarProvider>
-          <AppSidebar />
-          <SidebarInset>{children}</SidebarInset>
-        </SidebarProvider>
-        <Toaster />
+        <NextIntlClientProvider locale={locale} messages={messages}>
+          <SidebarProvider>
+            <AppSidebar />
+            <SidebarInset>{children}</SidebarInset>
+          </SidebarProvider>
+          <Toaster />
+        </NextIntlClientProvider>
       </body>
     </html>
   );

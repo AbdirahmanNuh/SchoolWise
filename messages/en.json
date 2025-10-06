@@ -1,0 +1,26 @@
+{
+  "Sidebar": {
+    "dashboard": "Dashboard",
+    "students": "Students",
+    "classes": "Classes",
+    "financials": "Financials",
+    "attendance": "Attendance",
+    "exams": "Exams",
+    "reports": "Reports",
+    "settings": "Settings",
+    "adminUser": "Admin User"
+  },
+  "Dashboard": {
+    "title": "Dashboard",
+    "description": "Overview of key metrics for financials, attendance, and exams.",
+    "attendanceSummary": "Attendance Summary",
+    "totalStudents": "Total Students",
+    "averageAttendance": "Average Attendance",
+    "absentToday": "Absent Today",
+    "examPerformance": "Exam Performance",
+    "manageFinancials": "Manage Financials",
+    "viewAttendance": "View Attendance",
+    "manageExams": "Manage Exams",
+    "generateReports": "Generate Reports"
+  }
+}
