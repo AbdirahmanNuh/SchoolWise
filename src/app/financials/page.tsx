@@ -29,7 +29,7 @@ export default function FinancialsPage() {
       </header>
 
       <Tabs defaultValue="fee-structure" className="mt-6">
-        <TabsList className="grid w-full max-w-lg grid-cols-4">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="fee-structure">Fee Structure</TabsTrigger>
           <TabsTrigger value="generate-invoices">Generate Invoices</TabsTrigger>
           <TabsTrigger value="receive-payments">Receive Payments</TabsTrigger>
