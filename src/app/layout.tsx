@@ -4,7 +4,6 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import AppSidebar from "@/components/layout/app-sidebar";
-import PageProgressBar from "@/components/layout/page-progress-bar";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -31,7 +30,6 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${spaceGrotesk.variable} font-body antialiased`}
       >
-        <PageProgressBar />
         <SidebarProvider>
           <AppSidebar />
           <SidebarInset>{children}</SidebarInset>
