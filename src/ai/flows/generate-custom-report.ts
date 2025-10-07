@@ -7,9 +7,14 @@
  * - GenerateCustomReportInput - The input type for the generateCustomReport function.
  * - GenerateCustomReportOutput - The return type for the generateCustomReport function.
  */
-
-import {ai} from '@/ai/genkit';
+import {genkit} from 'genkit';
+import {googleAI} from '@genkit-ai/google-genai';
 import {z} from 'genkit';
+
+const ai = genkit({
+  plugins: [googleAI()],
+  model: 'googleai/gemini-2.5-flash',
+});
 
 const GenerateCustomReportInputSchema = z.object({
   criteria: z
