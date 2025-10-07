@@ -2,8 +2,18 @@
 
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import GradeEntry from "./grade-entry";
-import ExamReports from "./exam-reports";
+import dynamic from "next/dynamic";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+
+
+const GradeEntry = dynamic(() => import("./grade-entry"), {
+    loading: () => <GradeEntrySkeleton />,
+});
+const ExamReports = dynamic(() => import("./exam-reports"), {
+    loading: () => <ExamReportsSkeleton />,
+});
 
 type Tab = "grade-entry" | "reports";
 
@@ -40,3 +50,92 @@ export default function ExamsView() {
     </>
   );
 }
+
+function GradeEntrySkeleton() {
+    return (
+        <Card>
+            <CardContent className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <Skeleton className="h-10 w-full" />
+                    <Skeleton className="h-10 w-full" />
+                    <Skeleton className="h-10 w-full" />
+                </div>
+                <div>
+                    <div className="overflow-x-auto rounded-md border">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead><Skeleton className="h-5 w-32" /></TableHead>
+                                    <TableHead><Skeleton className="h-5 w-24" /></TableHead>
+                                    <TableHead className="text-center"><Skeleton className="h-5 w-32 mx-auto" /></TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {[...Array(5)].map((_, i) => (
+                                    <TableRow key={i}>
+                                        <TableCell><Skeleton className="h-5 w-40" /></TableCell>
+                                        <TableCell><Skeleton className="h-5 w-20" /></TableCell>
+                                        <TableCell className="text-center"><Skeleton className="h-9 w-32 mx-auto" /></TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </div>
+                    <div className="flex justify-end gap-4 mt-6">
+                        <Skeleton className="h-10 w-20" />
+                        <Skeleton className="h-10 w-24" />
+                    </div>
+                </div>
+            </CardContent>
+        </Card>
+    );
+}
+
+function ExamReportsSkeleton() {
+    return (
+        <Card>
+            <CardHeader>
+                <div className="flex space-x-6 border-b">
+                    <Skeleton className="h-9 w-36" />
+                    <Skeleton className="h-9 w-36" />
+                </div>
+            </CardHeader>
+            <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <Skeleton className="h-10 w-full" />
+                    <Skeleton className="h-10 w-full" />
+                    <Skeleton className="h-10 w-full" />
+                </div>
+                <div className="overflow-x-auto rounded-md border">
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead><Skeleton className="h-5 w-24" /></TableHead>
+                                <TableHead><Skeleton className="h-5 w-24" /></TableHead>
+                                <TableHead><Skeleton className="h-5 w-24" /></TableHead>
+                                <TableHead><Skeleton className="h-5 w-16" /></TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {[...Array(3)].map((_, i) => (
+                                <TableRow key={i}>
+                                    <TableCell><Skeleton className="h-5 w-28" /></TableCell>
+                                    <TableCell><Skeleton className="h-5 w-20" /></TableCell>
+                                    <TableCell><Skeleton className="h-5 w-20" /></TableCell>
+                                    <TableCell><Skeleton className="h-5 w-12" /></TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </div>
+            </CardContent>
+            <CardContent className="flex justify-end gap-4 mt-6">
+                <Skeleton className="h-10 w-40" />
+                <Skeleton className="h-10 w-40" />
+                <Skeleton className="h-10 w-24" />
+            </CardContent>
+        </Card>
+    )
+}
+
+    

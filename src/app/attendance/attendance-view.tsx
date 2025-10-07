@@ -27,8 +27,14 @@ import {
 } from "@/components/ui/table";
 import { Calendar } from "@/components/ui/calendar";
 import { Calendar as CalendarIcon } from "lucide-react";
-import AttendanceReports from "./attendance-reports";
 import { cn } from "@/lib/utils";
+import dynamic from "next/dynamic";
+import { Skeleton } from "@/components/ui/skeleton";
+
+const AttendanceReports = dynamic(() => import("./attendance-reports"), {
+  loading: () => <AttendanceReportsSkeleton />,
+});
+
 
 type Student = {
   id: string;
@@ -224,3 +230,65 @@ export default function AttendanceView() {
     </>
   );
 }
+
+function AttendanceReportsSkeleton() {
+  return (
+    <div className="space-y-8">
+      <Card>
+        <CardHeader>
+          <CardTitle>Report Criteria</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+          </div>
+          <div className="mt-6 flex justify-end">
+            <Skeleton className="h-10 w-40" />
+          </div>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <Skeleton className="h-8 w-1/2" />
+          <Skeleton className="h-4 w-3/4" />
+        </CardHeader>
+        <CardContent>
+          <div className="mb-8">
+            <h3 className="text-lg font-semibold mb-4">Attendance Summary</h3>
+            <Skeleton className="h-80 w-full" />
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Detailed Report</h3>
+            <div className="overflow-x-auto rounded-lg border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead><Skeleton className="h-5 w-20" /></TableHead>
+                    <TableHead><Skeleton className="h-5 w-32" /></TableHead>
+                    <TableHead><Skeleton className="h-5 w-32" /></TableHead>
+                    <TableHead className="text-center"><Skeleton className="h-5 w-20 mx-auto" /></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {[...Array(5)].map((_, index) => (
+                    <TableRow key={index}>
+                      <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                      <TableCell><Skeleton className="h-5 w-36" /></TableCell>
+                      <TableCell><Skeleton className="h-5 w-36" /></TableCell>
+                      <TableCell className="text-center"><Skeleton className="h-6 w-16 mx-auto rounded-full" /></TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
+    
