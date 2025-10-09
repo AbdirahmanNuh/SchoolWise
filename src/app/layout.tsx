@@ -5,37 +5,47 @@ import { Toaster } from "@/components/ui/toaster";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import AppSidebar from "@/components/layout/app-sidebar";
 
+// 👈 Import the newly created provider
+import ConvexClientProvider from './ConvexClientProvider'; 
+
 const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
+    subsets: ["latin"],
+    variable: "--font-inter",
 });
 
 const spaceGrotesk = Space_Grotesk({
-  subsets: ["latin"],
-  variable: "--font-space-grotesk",
+    subsets: ["latin"],
+    variable: "--font-space-grotesk",
 });
 
 export const metadata: Metadata = {
-  title: "SchoolWise",
-  description: "School Administration Dashboard",
+    title: "SchoolWise",
+    description: "School Administration Dashboard",
 };
 
 export default function RootLayout({
-  children,
+    children,
 }: Readonly<{
-  children: React.ReactNode;
+    children: React.ReactNode;
 }>) {
-  return (
-    <html lang="en">
-      <body
-        className={`${inter.variable} ${spaceGrotesk.variable} font-body antialiased`}
-      >
-        <SidebarProvider>
-          <AppSidebar />
-          <SidebarInset>{children}</SidebarInset>
-        </SidebarProvider>
-        <Toaster />
-      </body>
-    </html>
-  );
+    return (
+        <html lang="en">
+            <body
+                className={`${inter.variable} ${spaceGrotesk.variable} font-body antialiased`}
+            >
+                {/* 1. Wrap the entire app structure with ConvexClientProvider.
+                  This ensures components like StudentsView that use Convex hooks are 
+                  nested correctly.
+                */}
+                <ConvexClientProvider>
+                    <SidebarProvider>
+                        <AppSidebar />
+                        <SidebarInset>{children}</SidebarInset>
+                    </SidebarProvider>
+                </ConvexClientProvider>
+
+                <Toaster />
+            </body>
+        </html>
+    );
 }

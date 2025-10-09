@@ -1,7 +1,7 @@
 "use client";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import FeeStructure from "./fee-structure";
+import FeeStructure from "./feestructure";
 import GenerateInvoices from "./generate-invoices";
 import ReceivePayments from "./receive-payments";
 import FinancialReports from "./financial-reports";
