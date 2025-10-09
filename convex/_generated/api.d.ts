@@ -17,6 +17,7 @@ import type * as academicYears from "../academicYears.js";
 import type * as classes from "../classes.js";
 import type * as feeStructure from "../feeStructure.js";
 import type * as generateInvoices from "../generateInvoices.js";
+import type * as payments from "../payments.js";
 import type * as promotions from "../promotions.js";
 import type * as students from "../students.js";
 
@@ -33,6 +34,7 @@ declare const fullApi: ApiFromModules<{
   classes: typeof classes;
   feeStructure: typeof feeStructure;
   generateInvoices: typeof generateInvoices;
+  payments: typeof payments;
   promotions: typeof promotions;
   students: typeof students;
 }>;

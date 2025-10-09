@@ -68,6 +68,7 @@ export default defineSchema({
    * 📄 Stores the generated invoices.
    * Unified schema: optional fields allow V1 → V2 migration.
    */
+  // Update the invoices table in the schema
   invoices: defineTable({
     classId:      v.optional(v.id("classes")),
     studentId:    v.optional(v.id("students")),
@@ -80,6 +81,27 @@ export default defineSchema({
     })),
     dueDate: v.string(),
     notes:   v.string(),
-    status:  v.string(),
+    status:  v.string(), // "PENDING", "PARTIAL", "PAID"
+    remainingBalance: v.optional(v.number()),
+    lastPaymentDate: v.optional(v.string()),
+    lastPaymentId: v.optional(v.id("payments")),
   }),
+
+  // Add this at the end of the schema definition, before the closing bracket
+  
+    /**
+     * 💵 Payments Table
+     * Stores all payment transactions made by students
+     */
+    payments: defineTable({
+      studentId: v.id("students"),
+      studentName: v.string(),
+      amount: v.number(),
+      paymentMethod: v.string(),
+      reference: v.optional(v.string()),
+      notes: v.optional(v.string()),
+      sendReceipt: v.boolean(),
+      createdAt: v.number(),
+    })
+    .index("by_studentId", ["studentId"]),
 });
