@@ -65,3 +65,22 @@ export const getGrades = query({
     return grades;
   },
 });
+
+export const getStudentGrades = query({
+  args: {
+    studentId: v.id("students"),
+    academicYear: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const grades = await ctx.db
+      .query("grades")
+      .withIndex("by_student_year_subject", (q) =>
+        q
+          .eq("studentId", args.studentId)
+          .eq("academicYear", args.academicYear)
+      )
+      .collect();
+    
+    return grades;
+  },
+});

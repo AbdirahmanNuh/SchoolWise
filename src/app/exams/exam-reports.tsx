@@ -45,8 +45,8 @@ export default function ExamReports() {
   const subjects = useQuery(api.subjects.listSubjects) || [];
   const students = useQuery(api.students.listStudents) || [];
 
-  // Fix conditional hook usage - separate the query
-  const gradesQuery = useQuery(api.grades.getGrades, 
+  // Query for class reports (requires year, subject, and student list)
+  const classGradesQuery = useQuery(api.grades.getGrades, 
     selectedYear && selectedSubject && students.length > 0
       ? {
           academicYear: selectedYear,
@@ -56,7 +56,17 @@ export default function ExamReports() {
       : "skip"
   );
   
-  const grades = selectedYear && selectedSubject ? gradesQuery : undefined;
+  // Query for student reports (requires year and student)
+  const studentGradesQuery = useQuery(api.grades.getStudentGrades,
+    selectedYear && selectedStudent
+      ? {
+          studentId: selectedStudent,
+          academicYear: selectedYear,
+        }
+      : "skip"
+  );
+  
+  const grades = reportType === "byClass" ? classGradesQuery : studentGradesQuery;
 
   const getGradeLabel = (marks: number) => {
     if (marks >= 90) return "A+";
@@ -78,6 +88,7 @@ export default function ExamReports() {
     if (!grades || !selectedStudent || !selectedYear || !students.length || !subjects.length) return [];
     const student = students.find((s: Doc<"students">) => s._id === selectedStudent);
     if (!student) return [];
+    
     return subjects.map((subject: Doc<"subjects">) => {
       const grade = grades.find(
         (g: Doc<"grades">) =>
