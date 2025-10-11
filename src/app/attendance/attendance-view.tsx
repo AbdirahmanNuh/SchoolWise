@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "../../../convex/_generated/api";
 import {
   Card,
   CardContent,
@@ -37,18 +39,15 @@ const AttendanceReports = dynamic(() => import("./attendance-reports"), {
 
 
 type Student = {
-  id: string;
-  name: string;
+  _id: string;
+  fullName: string;
   status: "present" | "absent" | "late" | "excused";
 };
 
-const initialStudents: Student[] = [
-  { id: "1", name: "Liam Harper", status: "present" },
-  { id: "2", name: "Olivia Bennett", status: "absent" },
-  { id: "3", name: "Noah Carter", status: "present" },
-  { id: "4", name: "Emma Davis", status: "excused" },
-  { id: "5", name: "Ethan Foster", status: "absent" },
-];
+type Class = {
+  _id: string;
+  name: string;
+};
 
 type Status = "present" | "absent" | "late" | "excused";
 
@@ -65,16 +64,67 @@ const inactiveStatusColor = "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:tex
 type Tab = "mark-attendance" | "view-register" | "reports";
 
 export default function AttendanceView() {
-  const [students, setStudents] = useState<Student[]>(initialStudents);
+  const [students, setStudents] = useState<Student[]>([]);
+  const [classes, setClasses] = useState<Class[]>([]);
+  const [selectedClass, setSelectedClass] = useState<string>("");
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [activeTab, setActiveTab] = useState<Tab>("mark-attendance");
+  
+  // Fetch classes
+  const classesData = useQuery(api.classes.listClasses);
+  // Fetch students by class
+  const studentsData = useQuery(api.attendance.getStudentsByClass, 
+    selectedClass ? { classId: selectedClass } : "skip"
+  );
+  // Mark attendance mutation
+  const markAttendance = useMutation(api.attendance.markAttendance);
+
+  useEffect(() => {
+    if (classesData) {
+      setClasses(classesData);
+    }
+  }, [classesData]);
+
+        useEffect(() => {
+        if (studentsData && Array.isArray(studentsData.students)) { // Access the correct 'students' property
+        setStudents(studentsData.students.map((student: any) => ({ // Add type 'any' temporarily if the nested student type is complex in the query result
+        _id: student._id,
+        fullName: student.fullName,
+        status: "present" // Default status
+        })));
+        }
+        }, [studentsData]);
 
   const handleStatusChange = (studentId: string, newStatus: Status) => {
     setStudents(
       students.map((student) =>
-        student.id === studentId ? { ...student, status: newStatus } : student
+        student._id === studentId ? { ...student, status: newStatus } : student
       )
     );
+  };
+
+  const handleSubmit = async () => {
+    if (!selectedClass || !date) {
+      alert("Please select a class and date before submitting.");
+      return;
+    }
+
+    try {
+      await Promise.all(
+        students.map((student) =>
+          markAttendance({
+            studentId: student._id as any,
+            classId: selectedClass as any,
+            date: date.toISOString().split('T')[0],
+            status: student.status,
+          })
+        )
+      );
+      alert("Attendance submitted successfully!");
+    } catch (error) {
+      console.error("Error submitting attendance:", error);
+      alert("Failed to submit attendance. Please try again.");
+    }
   };
   
   const NavLink = ({ tab, label }: { tab: Tab; label: string }) => (
@@ -115,20 +165,19 @@ export default function AttendanceView() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <Label htmlFor="class">Select Class</Label>
-                    <Select defaultValue="grade-11b">
+                    <Select 
+                      value={selectedClass} 
+                      onValueChange={setSelectedClass}
+                    >
                       <SelectTrigger id="class">
                         <SelectValue placeholder="Select a class" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="grade-10a">
-                          Grade 10 - Section A
-                        </SelectItem>
-                        <SelectItem value="grade-11b">
-                          Grade 11 - Section B
-                        </SelectItem>
-                        <SelectItem value="grade-12c">
-                          Grade 12 - Section C
-                        </SelectItem>
+                        {classes.map((classItem) => (
+                          <SelectItem key={classItem._id} value={classItem._id}>
+                            {classItem.name}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
@@ -155,55 +204,68 @@ export default function AttendanceView() {
 
                 <div className="mt-6">
                   <h4 className="text-base font-semibold mb-4">
-                    Student List (Grade 11 - Section B)
+                    {selectedClass 
+                      ? `Student List (${classes.find((c: Class) => c._id === selectedClass)?.name || "Selected Class"})`
+                      : "Student List"
+                    }
                   </h4>
                   <div className="overflow-x-auto rounded-lg border">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Student Name</TableHead>
-                          <TableHead className="text-center">
-                            Attendance Status
-                          </TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {students.map((student) => (
-                          <TableRow key={student.id}>
-                            <TableCell className="font-medium">
-                              {student.name}
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex items-center justify-center space-x-2">
-                                {(
-                                  ["present", "absent", "late", "excused"] as Status[]
-                                ).map((status) => (
-                                  <button
-                                    key={status}
-                                    onClick={() =>
-                                      handleStatusChange(student.id, status)
-                                    }
-                                    className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
-                                      student.status === status
-                                        ? statusColors[status]
-                                        : inactiveStatusColor + ' hover:bg-gray-200 dark:hover:bg-gray-600'
-                                    }`}
-                                  >
-                                    {status.charAt(0).toUpperCase() +
-                                      status.slice(1)}
-                                  </button>
-                                ))}
-                              </div>
-                            </TableCell>
+                    {!selectedClass ? (
+                      <div className="p-8 text-center text-muted-foreground">
+                        Please select a class to view students
+                      </div>
+                    ) : students.length === 0 ? (
+                      <div className="p-8 text-center text-muted-foreground">
+                        No students found in this class
+                      </div>
+                    ) : (
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Student Name</TableHead>
+                            <TableHead className="text-center">
+                              Attendance Status
+                            </TableHead>
                           </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
+                        </TableHeader>
+                        <TableBody>
+                          {students.map((student) => (
+                            <TableRow key={student._id}>
+                              <TableCell className="font-medium">
+                                {student.fullName}
+                              </TableCell>
+                              <TableCell>
+                                <div className="flex items-center justify-center space-x-2">
+                                  {(
+                                    ["present", "absent", "late", "excused"] as Status[]
+                                  ).map((status) => (
+                                    <button
+                                      key={status}
+                                      onClick={() =>
+                                        handleStatusChange(student._id, status)
+                                      }
+                                      className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
+                                        student.status === status
+                                          ? statusColors[status]
+                                          : inactiveStatusColor + ' hover:bg-gray-200 dark:hover:bg-gray-600'
+                                      }`}
+                                    >
+                                      {status.charAt(0).toUpperCase() +
+                                        status.slice(1)}
+                                    </button>
+                                  ))}
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    )}
                   </div>
                 </div>
 
                 <div className="mt-6 flex justify-end">
-                  <Button size="lg">Submit Attendance</Button>
+                  <Button size="lg" onClick={handleSubmit}>Submit Attendance</Button>
                 </div>
               </CardContent>
             </Card>

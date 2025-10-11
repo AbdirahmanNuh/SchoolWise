@@ -104,4 +104,18 @@ export default defineSchema({
       createdAt: v.number(),
     })
     .index("by_studentId", ["studentId"]),
+
+    /**
+     * 📋 Attendance Table
+     * Stores student attendance records
+     */
+    attendance: defineTable({
+      studentId: v.id("students"),
+      classId: v.id("classes"),
+      date: v.string(),
+      status: v.string(), // "present", "absent", "late", "excused"
+      createdAt: v.number(),
+    })
+    .index("by_studentId_date", ["studentId", "date"])
+    .index("by_classId_date", ["classId", "date"]),
 });
