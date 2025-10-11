@@ -1,8 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { useQuery } from "convex/react";
+import { api } from "../../../convex/_generated/api";
+import { Id, Doc } from "../../../convex/_generated/dataModel";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardFooter,
+} from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -22,24 +30,95 @@ import {
 import { cn } from "@/lib/utils";
 import { Download, Printer } from "lucide-react";
 
+
 type ReportType = "byStudent" | "byClass";
-
-const studentReportData = [
-    { subject: "Mathematics", marks: 85, total: 100, grade: "A" },
-    { subject: "Science", marks: 92, total: 100, grade: "A+" },
-    { subject: "English", marks: 78, total: 100, grade: "B" },
-];
-
-const classReportData = [
-    { id: "STU001", name: "Liam Carter", marks: 85 },
-    { id: "STU002", name: "Olivia Bennett", marks: 78 },
-    { id: "STU003", name: "Noah Thompson", marks: 92 },
-    { id: "STU004", name: "Ava Martinez", marks: 65 },
-    { id: "STU005", name: "Ethan Clark", marks: 50 },
-];
 
 export default function ExamReports() {
   const [reportType, setReportType] = useState<ReportType>("byStudent");
+  const [selectedYear, setSelectedYear] = useState<string | undefined>(undefined);
+  const [selectedClass, setSelectedClass] = useState<Id<"classes"> | undefined>(undefined);
+  const [selectedStudent, setSelectedStudent] = useState<Id<"students"> | undefined>(undefined);
+  const [selectedSubject, setSelectedSubject] = useState<string | undefined>(undefined);
+
+  const academicYears = useQuery(api.academicYears.listAcademicYears) || [];
+  const classes = useQuery(api.classes.listClasses) || [];
+  const subjects = useQuery(api.subjects.listSubjects) || [];
+  const students = useQuery(api.students.listStudents) || [];
+
+  // Fix conditional hook usage - separate the query
+  const gradesQuery = useQuery(api.grades.getGrades, 
+    selectedYear && selectedSubject && students.length > 0
+      ? {
+          academicYear: selectedYear,
+          subject: selectedSubject,
+          studentIds: students.map((s: Doc<"students">) => s._id),
+        }
+      : "skip"
+  );
+  
+  const grades = selectedYear && selectedSubject ? gradesQuery : undefined;
+
+  const getGradeLabel = (marks: number) => {
+    if (marks >= 90) return "A+";
+    if (marks >= 80) return "A";
+    if (marks >= 70) return "B";
+    if (marks >= 60) return "C";
+    if (marks >= 50) return "D";
+    return "F";
+  };
+
+  type StudentReportRow = {
+    subject: string;
+    marks: number | "N/A";
+    total: number;
+    grade: string;
+  };
+
+  const studentReportData: StudentReportRow[] = useMemo(() => {
+    if (!grades || !selectedStudent || !selectedYear || !students.length || !subjects.length) return [];
+    const student = students.find((s: Doc<"students">) => s._id === selectedStudent);
+    if (!student) return [];
+    return subjects.map((subject: Doc<"subjects">) => {
+      const grade = grades.find(
+        (g: Doc<"grades">) =>
+          g.studentId === selectedStudent &&
+          g.subject === subject.name &&
+          g.academicYear === selectedYear
+      );
+      return {
+        subject: subject.name,
+        marks: grade ? grade.marks : "N/A",
+        total: 100,
+        grade: grade ? getGradeLabel(grade.marks) : "N/A",
+      };
+    });
+  }, [grades, selectedStudent, selectedYear, students, subjects]);
+
+  type ClassReportRow = {
+    id: string;
+    name: string;
+    marks: number | "N/A";
+  };
+
+  const classReportData: ClassReportRow[] = useMemo(() => {
+    if (!grades || !selectedClass || !selectedSubject || !selectedYear || !students.length || !classes.length) return [];
+    const selectedClassObj = classes.find((c: Doc<"classes">) => c._id === selectedClass);
+    if (!selectedClassObj) return [];
+    const classStudents = students.filter((s: Doc<"students">) => s.classForm === selectedClassObj.name);
+    return classStudents.map((student: Doc<"students">) => {
+      const grade = grades.find(
+        (g: Doc<"grades">) =>
+          g.studentId === student._id &&
+          g.subject === selectedSubject &&
+          g.academicYear === selectedYear
+      );
+      return {
+        id: student.studentId,
+        name: student.fullName,
+        marks: grade ? grade.marks : "N/A",
+      };
+    });
+  }, [grades, selectedClass, selectedSubject, selectedYear, students, classes]);
 
   const NavLink = ({ tab, label }: { tab: ReportType; label: string }) => (
     <button
@@ -67,35 +146,55 @@ export default function ExamReports() {
         {reportType === "byStudent" ? (
           <div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-              <Select defaultValue="2023-2024">
+              <Select onValueChange={setSelectedYear} value={selectedYear}>
                 <SelectTrigger>
                   <SelectValue placeholder="Academic Year" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="2023-2024">2023-2024</SelectItem>
+                  {academicYears.map((year: Doc<"academicYears">) => (
+                    <SelectItem key={year._id} value={year.year}>
+                      {year.year}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
-              <Select defaultValue="class-10a">
+              <Select onValueChange={(value) => setSelectedClass(value as Id<"classes">)} value={selectedClass}>
                 <SelectTrigger>
                   <SelectValue placeholder="Class" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="class-10a">Class 10A</SelectItem>
+                  {classes.map((c) => (
+                    <SelectItem key={c._id} value={c._id}>
+                      {c.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
-              <Select defaultValue="stu001">
+              <Select onValueChange={(value) => setSelectedStudent(value as Id<"students">)} value={selectedStudent}>
                 <SelectTrigger>
                   <SelectValue placeholder="Student" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="stu001">Liam Carter (STU001)</SelectItem>
-                  <SelectItem value="stu002">Olivia Bennett (STU002)</SelectItem>
+                  {students
+                    .filter((s) => {
+                      if (!selectedClass) return false;
+                      const classObj = classes.find(c => c._id === selectedClass);
+                      return classObj && s.classForm === classObj.name;
+                    })
+                    .map((student) => (
+                      <SelectItem key={student._id} value={student._id}>
+                        {student.fullName} ({student.studentId})
+                      </SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
             </div>
             <div className="overflow-x-auto rounded-md border">
               <Table>
-                <TableCaption>Report for: Liam Carter (STU001)</TableCaption>
+                <TableCaption>
+                  Report for:{" "}
+                  {selectedStudent ? students.find((s) => s._id === selectedStudent)?.fullName || "N/A" : "N/A"}
+                </TableCaption>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Subject</TableHead>
@@ -105,14 +204,24 @@ export default function ExamReports() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {studentReportData.map((row) => (
-                        <TableRow key={row.subject}>
-                            <TableCell className="font-medium">{row.subject}</TableCell>
-                            <TableCell>{row.marks}</TableCell>
-                            <TableCell>{row.total}</TableCell>
-                            <TableCell>{row.grade}</TableCell>
-                        </TableRow>
-                    ))}
+                  {studentReportData.length > 0 ? (
+                    studentReportData.map((row) => (
+                      <TableRow key={row.subject}>
+                        <TableCell className="font-medium">
+                          {row.subject}
+                        </TableCell>
+                        <TableCell>{row.marks}</TableCell>
+                        <TableCell>{row.total}</TableCell>
+                        <TableCell>{row.grade}</TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={4} className="text-center text-muted-foreground">
+                        No data available. Please select academic year, class, and student.
+                      </TableCell>
+                    </TableRow>
+                  )}
                 </TableBody>
               </Table>
             </div>
@@ -120,34 +229,48 @@ export default function ExamReports() {
         ) : (
           <div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-              <Select defaultValue="2023-2024">
+              <Select onValueChange={setSelectedYear} value={selectedYear}>
                 <SelectTrigger>
                   <SelectValue placeholder="Academic Year" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="2023-2024">2023-2024</SelectItem>
+                  {academicYears.map((year) => (
+                    <SelectItem key={year._id} value={year.year}>
+                      {year.year}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
-              <Select defaultValue="class-10a">
+              <Select onValueChange={(value) => setSelectedClass(value as Id<"classes">)} value={selectedClass}>
                 <SelectTrigger>
                   <SelectValue placeholder="Class" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="class-10a">Class 10A</SelectItem>
+                  {classes.map((c) => (
+                    <SelectItem key={c._id} value={c._id}>
+                      {c.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
-              <Select defaultValue="mathematics">
+              <Select onValueChange={setSelectedSubject} value={selectedSubject}>
                 <SelectTrigger>
                   <SelectValue placeholder="Subject" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="mathematics">Mathematics</SelectItem>
+                  {subjects.map((subject) => (
+                    <SelectItem key={subject._id} value={subject.name}>
+                      {subject.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
             <div className="overflow-x-auto rounded-md border">
               <Table>
-                <TableCaption>Report for: Class 10A - Mathematics</TableCaption>
+                <TableCaption>
+                  Report for: {selectedClass ? classes.find(c => c._id === selectedClass)?.name || 'N/A' : 'N/A'} - {selectedSubject || 'N/A'}
+                </TableCaption>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Student Name</TableHead>
@@ -156,13 +279,21 @@ export default function ExamReports() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {classReportData.map((row) => (
-                        <TableRow key={row.id}>
-                            <TableCell className="font-medium">{row.name}</TableCell>
-                            <TableCell>{row.id}</TableCell>
-                            <TableCell>{row.marks}</TableCell>
-                        </TableRow>
-                    ))}
+                  {classReportData.length > 0 ? (
+                    classReportData.map((row) => (
+                      <TableRow key={row.id}>
+                        <TableCell className="font-medium">{row.name}</TableCell>
+                        <TableCell>{row.id}</TableCell>
+                        <TableCell>{row.marks}</TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={3} className="text-center text-muted-foreground">
+                        No data available. Please select academic year, class, and subject.
+                      </TableCell>
+                    </TableRow>
+                  )}
                 </TableBody>
               </Table>
             </div>
@@ -170,9 +301,18 @@ export default function ExamReports() {
         )}
       </CardContent>
       <CardFooter className="flex flex-col sm:flex-row justify-end gap-4 mt-6">
-          <Button variant="outline"><Download className="mr-2"/>Download as PDF</Button>
-          <Button variant="outline"><Download className="mr-2"/>Download as Excel</Button>
-          <Button variant="outline"><Printer className="mr-2"/>Print</Button>
+        <Button variant="outline">
+          <Download className="mr-2" />
+          Download as PDF
+        </Button>
+        <Button variant="outline">
+          <Download className="mr-2" />
+          Download as Excel
+        </Button>
+        <Button variant="outline">
+          <Printer className="mr-2" />
+          Print
+        </Button>
       </CardFooter>
     </Card>
   );

@@ -124,4 +124,16 @@ export default defineSchema({
     })
     .index("by_studentId_date", ["studentId", "date"])
     .index("by_classId_date", ["classId", "date"]),
+
+  // 📝 Grades Table
+  grades: defineTable({
+    studentId: v.id("students"),
+    academicYear: v.string(),
+    subject: v.string(),
+    marks: v.number(),
+    createdAt: v.number(),
+    updatedAt: v.optional(v.number()),
+  })
+  .index("by_student_year_subject", ["studentId", "academicYear", "subject"]),
+
 });
