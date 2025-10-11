@@ -22,6 +22,7 @@ import type * as generateInvoices from "../generateInvoices.js";
 import type * as payments from "../payments.js";
 import type * as promotions from "../promotions.js";
 import type * as students from "../students.js";
+import type * as subjects from "../subjects.js";
 
 /**
  * A utility for referencing Convex functions in your app's API.
@@ -41,6 +42,7 @@ declare const fullApi: ApiFromModules<{
   payments: typeof payments;
   promotions: typeof promotions;
   students: typeof students;
+  subjects: typeof subjects;
 }>;
 export declare const api: FilterApi<
   typeof fullApi,

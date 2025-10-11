@@ -44,7 +44,13 @@ export default defineSchema({
     createdAt: v.number(),
     updatedAt: v.optional(v.number()),
   }),
-
+  // 📚 Subjects Table 
+  subjects: defineTable({
+    name: v.string(),
+    description: v.optional(v.string()),
+    createdAt: v.number(),
+    updatedAt: v.optional(v.number()),
+  }),
   // 💰 Fees Table
   fees: defineTable({
     name: v.string(),

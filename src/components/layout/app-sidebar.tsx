@@ -22,6 +22,7 @@ import {
   Settings,
   Contact,
   Book,
+  BookOpen,
   Calendar,
 } from "lucide-react";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
@@ -37,8 +38,11 @@ export default function AppSidebar() {
   const navItems = [
     { href: "/", label: "Dashboard", icon: LayoutDashboard },
     { href: "/students", label: "Students", icon: Contact },
+    
     { href: "/classes", label: "Classes", icon: Book },
+    { href: "/subjects", label: "Subjects", icon: BookOpen },
     { href: "/academic-years", label: "Academic Years", icon: Calendar },
+
     { href: "/financials", label: "Financials", icon: Banknote },
     { href: "/attendance", label: "Attendance", icon: Users },
     { href: "/exams", label: "Exams", icon: ClipboardCheck },
